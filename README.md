@@ -9,7 +9,7 @@ cd LLaRVA
 ```
 2. Install Package
 ```Shell
-conda create -n llaRva python=3.10 -y
+conda create -n llarva python=3.10 -y
 conda activate llava
 pip install --upgrade pip  # enable PEP 660 support
 pip install -e .

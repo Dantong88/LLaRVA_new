@@ -2,7 +2,7 @@
 
 
 ### Installation
-1. Clone this repository and navigate to LLaVA folder
+1. Clone this repository and navigate to LLaRVA folder
 ```bash
 unzip this code.zip
 cd LLaRVA

@@ -1,9 +1,38 @@
 # LLaRVA
 
 
-## Installation
+### Installation
+1. Clone this repository and navigate to LLaVA folder
+```bash
+unzip this code.zip
+cd LLaRVA
+```
+2. Install Package
+```Shell
+conda create -n llaRva python=3.10 -y
+conda activate llava
+pip install --upgrade pip  # enable PEP 660 support
+pip install -e .
+```
+3. Install additional packages for training cases
+```
+pip install -e ".[train]"
+pip install flash-attn --no-build-isolation
+```
 
-(1)```/home/niudt/anaconda3/envs/llava_new/lib/python3.10/site-packages/deepspeed/runtime/engine.py```, line 2586-2589, change strict from True to False
+### Upgrade to latest code base
+
+```Shell
+git pull
+pip install -e .
+
+# if you see some import errors when you upgrade, please try running the command below (without #)
+# pip install flash-attn --no-build-isolation --no-cache-dir
+```
+
+### modifications of the internal packages
+
+1. ```/home/niudt/anaconda3/envs/llava_new/lib/python3.10/site-packages/deepspeed/runtime/engine.py```, line 2586-2589, change strict from True to False
  ```else:
                 self.module.load_state_dict(
                     module_state_dict,  # TODO
@@ -11,7 +40,7 @@
 ```
 
 
-(2) ```/home/niudt/anaconda3/envs/llava_new/lib/python3.10/site-packages/transformers/generation/configuration_utils.py```, comment out line 554-563:
+2. ```/home/niudt/anaconda3/envs/llava_new/lib/python3.10/site-packages/transformers/generation/configuration_utils.py```, comment out line 554-563:
 ```# try:
         #     with warnings.catch_warnings(record=True) as caught_warnings:
         #         self.validate()

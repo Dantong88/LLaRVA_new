@@ -18,8 +18,9 @@ if command -v module &> /dev/null
 then
     module load cuda
     # module load python/3.9-anaconda-2021.11
-    set -e
 fi
+set -e
+
 
 # Feel free to customize this section, but this setup just picks the first comda or mamba
 # installation tht it finds in the following order:

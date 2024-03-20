@@ -40,7 +40,7 @@ fi
 
 ##
 ## Activate Conda (or Miniconda, or Mamba)
-echo "Sourcing CONDA_FN: '$CONDA_FN' from location: '${CONDA_DIR}'" 
+echo "Sourcing CONDA_FN: '$CONDA_FN' from location: '${CONDA_DIR}'"
 if [ -d "${CONDA_DIR}/etc/profile.d" ]; then
     source "${CONDA_DIR}/etc/profile.d/conda.sh"
 fi
@@ -104,7 +104,7 @@ pushd "${PROJ_ROOT}"
 
 ## Install this repo (llarva):
 pip install -e ".[train]"
-pip install flash-attn --no-build-isolation
+pip install flash-attn --no-build-isolation --no-cache-dir
 
 popd
 
@@ -127,6 +127,8 @@ set -e
 
 $CONDA_FN list
 install_pytorch_cuda
+## TODO: If script still doesn't work, try also re-installing flash-attn here:
+# pip install -U flash-attn --no-build-isolation --no-cache-dir
 
 ## We are done, show the python environment:
 $CONDA_FN list

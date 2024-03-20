@@ -58,6 +58,9 @@ $CONDA_FN info --envs | grep "*"
 ## Show the python environment:
 $CONDA_FN list
 
+## Print env vars:
+env
+
 ## Check if we can load cuda:
 echo "Doing a quick check for torch.cuda:"
 python -c "import torch; print('torch.cuda.is_available: ', torch.cuda.is_available())"

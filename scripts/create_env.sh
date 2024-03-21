@@ -74,28 +74,30 @@ function install_pytorch_cuda() {
     #     cudatoolkit=11.1 \
     #     -c pytorch -c conda-forge -c anaconda -y
 
+    # $CONDA_FN install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -c conda-forge --solver=libmamba
+
+
     $CONDA_FN install \
         pytorch[build=*cuda*,channel=pytorch,version=2.1.2] \
-        pytorch-cuda==12.1 \
+        pytorch-cuda==11.8 \
         torchvision \
-        -c pytorch -c nvidia -c conda-forge -y
-
+        -c pytorch -c nvidia -c conda-forge --solver=libmamba -y
 }
 
 ##
 ## Create env:
-# Note: In practice I've found that the channels you list here must match the channels you list in
-# all your `conda install ...` commands, otherwise it causes package resolution problems.
-$CONDA_FN create --name "${ENV_NAME}" python=="${PYTHON_VERSION}" -y -c pytorch -c nvidia -c conda-forge
+$CONDA_FN create --name "${ENV_NAME}" python=="${PYTHON_VERSION}" -y
 $CONDA_FN activate "${ENV_NAME}"
 echo "Current environment: "
 $CONDA_FN info --envs | grep "*"
+
+$CONDA_FN install conda-libmamba-solver -y
 
 ##
 ## Base dependencies
 echo "Installing requirements..."
 install_pytorch_cuda
-pip install --upgrade pip setuptools wheel
+pip install --upgrade setuptools wheel
 
 ##
 ## Custom dependencies

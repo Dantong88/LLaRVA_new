@@ -6,11 +6,10 @@ export OMP_NUM_THREADS=56
 export MKL_NUM_THREADS=56
 export WANDB_MODE=offline
 
-echo "QQQQQQQ"
-deepspeed --num_nodes 1 --num_gpus 4 \
+deepspeed --num_nodes 1 --num_gpus 1 \
     llava/train/train_mem.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
-    --deepspeed ./scripts/zero3.json \
+    --deepspeed ${HOME}/Projects/llarva/scripts/zero3.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version v1 \
     --data_path ${WORKDIR}/datasets/llarva/exp4/train-34053947.json::${WORKDIR}/datasets/llarva/exp4/val-36743.json \

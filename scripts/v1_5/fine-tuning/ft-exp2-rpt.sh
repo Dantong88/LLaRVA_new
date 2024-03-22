@@ -2,12 +2,12 @@
 
 #!/bin/bash
 
-deepspeed --include localhost:2,3,4,5 llava/train/train_mem.py \
+deepspeed --include localhost:7 llava/train/train_mem.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
     --deepspeed ./scripts/zero3.json \
-    --model_name_or_path lmsys/vicuna-7b-v1.5 \
+    --model_name_or_path /home/niudt/LLaVA/checkpoints/merge/llava-v1.5-7b-exp4_quater \
     --version v1 \
-    --data_path /home/niudt/LLaVA/process_dataset/large_scale_training/exp_ann/exp4/quater-train-7087524.json::/home/niudt/LLaVA/process_dataset/large_scale_training/exp_ann/exp4/val-36743.json \
+    --data_path '/home/niudt/LLaVA/process_dataset/finetune/finetuning_anns/berkeley_rpt_converted_externally_to_rlds_new-pick blue cube-14706-train.json::/home/niudt/LLaVA/process_dataset/finetune/finetuning_anns/berkeley_rpt_converted_externally_to_rlds_new-pick blue cube-78399-val.json' \
     --image_folder '/scratch/partial_datasets/llarva/rtx/v2' \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --pretrain_mm_mlp_adapter /home/niudt/LLaVA/checkpoints/llava-v1.5-7b-pretrain/mm_projector.bin \
@@ -18,8 +18,8 @@ deepspeed --include localhost:2,3,4,5 llava/train/train_mem.py \
     --image_aspect_ratio pad \
     --group_by_modality_length True \
     --bf16 True \
-    --output_dir ./checkpoints/lora/llava-v1.5-7b-lora_exp4_Mar18_ \
-    --num_train_epochs 1 \
+    --output_dir ./checkpoints/lora/llava-v1.5-7b-lora_ft_rpt_pickbluebin \
+    --num_train_epochs 30 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 32 \
     --gradient_accumulation_steps 1 \
@@ -28,7 +28,7 @@ deepspeed --include localhost:2,3,4,5 llava/train/train_mem.py \
     --save_strategy "steps" \
     --save_steps 1000 \
     --save_total_limit 1 \
-    --learning_rate 5e-5 \
+    --learning_rate 1e-5 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \

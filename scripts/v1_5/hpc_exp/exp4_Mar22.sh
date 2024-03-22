@@ -1,29 +1,21 @@
-# this is for the exp4: OXE without trajectory
+# this is for pretraining, experiment 4 without trajectories, 34M images
 
 #!/bin/bash
 
-export OMP_NUM_THREADS=56
-export MKL_NUM_THREADS=56
-export WANDB_MODE=offline
-
-deepspeed --num_nodes 1 --num_gpus 1 \
-    llava/train/train_mem.py \
-    --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
-    --deepspeed ${HOME}/Projects/llarva/scripts/zero3.json \
+deepspeed --include localhost:0,1,2,3,4,5,6,7 llava/train/train_mem.py \
+    --deepspeed ./scripts/zero2.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
-    --version v1 \
-    --data_path ${WORKDIR}/datasets/llarva/exp4/train-34053947.json::${WORKDIR}/datasets/llarva/exp4/val-36743.json \
-    --image_folder ${WORKDIR}/datasets/llarva/v2 \
+    --version plain \
+    --data_path /home/niudt/LLaVA/process_dataset/large_scale_training/new_action_version/exp4/train-34053947.json::/home/niudt/LLaVA/process_dataset/large_scale_training/new_action_version/exp4/val-36743.json \
+    --image_folder '/scratch/partial_datasets/llarva/rtx/v2' \
     --vision_tower openai/clip-vit-large-patch14-336 \
-    --pretrain_mm_mlp_adapter ${WORKDIR}/datasets/llarva/checkpoints/llava-v1.5-7b-pretrain/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
+    --tune_mm_mlp_adapter True \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
-    --image_aspect_ratio pad \
-    --group_by_modality_length True \
     --bf16 True \
-    --output_dir ./checkpoints/lora/llava-v1.5-7b-lora_exp4_Mar18_ \
+    --output_dir ./checkpoints/llava-v1.5-7b-pretrain_exp4 \
     --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 32 \
@@ -33,7 +25,7 @@ deepspeed --num_nodes 1 --num_gpus 1 \
     --save_strategy "steps" \
     --save_steps 1000 \
     --save_total_limit 1 \
-    --learning_rate 5e-5 \
+    --learning_rate 1e-3 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \

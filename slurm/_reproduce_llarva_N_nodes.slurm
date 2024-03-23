@@ -62,7 +62,7 @@ export MKL_NUM_THREADS=56
 export WANDB_MODE=offline
 
 deepspeed --num_nodes 5 --num_gpus 20 \
-    /p/home/jquenum/Projects/llarva/llava/train/train_mem.py \
+    llava/train/train_mem.py \
     --deepspeed ${HOME}/Projects/llarva/scripts/zero2.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version plain \

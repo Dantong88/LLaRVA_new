@@ -12,6 +12,10 @@ from transformers.trainer import (
     ALL_LAYERNORM_LAYERS,
     logger,
 )
+
+from wandb_osh.hooks import TriggerWandbSyncHook
+trigger_sync = TriggerWandbSyncHook()
+
 from typing import List, Optional
 
 
@@ -131,6 +135,9 @@ class LengthGroupedSampler(Sampler):
 
 
 class LLaVATrainer(Trainer):
+    def log():
+        super().log()
+        trigger_sync()
 
     def _get_train_sampler(self) -> Optional[torch.utils.data.Sampler]:
         if self.train_dataset is None or not has_length(self.train_dataset):

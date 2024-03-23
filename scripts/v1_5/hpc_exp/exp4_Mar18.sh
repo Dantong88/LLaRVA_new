@@ -2,15 +2,20 @@
 
 #!/bin/bash
 
-deepspeed --include localhost:2,3,4,5 llava/train/train_mem.py \
+export OMP_NUM_THREADS=56
+export MKL_NUM_THREADS=56
+export WANDB_MODE=offline
+
+deepspeed --num_nodes 1 --num_gpus 1 \
+    llava/train/train_mem.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
-    --deepspeed ./scripts/zero3.json \
+    --deepspeed ${HOME}/Projects/llarva/scripts/zero3.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version v1 \
-    --data_path /home/niudt/LLaVA/process_dataset/large_scale_training/exp_ann/exp4/quater-train-7087524.json::/home/niudt/LLaVA/process_dataset/large_scale_training/exp_ann/exp4/val-36743.json \
-    --image_folder '/scratch/partial_datasets/llarva/rtx/v2' \
+    --data_path ${WORKDIR}/datasets/llarva/exp4/train-34053947.json::${WORKDIR}/datasets/llarva/exp4/val-36743.json \
+    --image_folder ${WORKDIR}/datasets/llarva/v2 \
     --vision_tower openai/clip-vit-large-patch14-336 \
-    --pretrain_mm_mlp_adapter /home/niudt/LLaVA/checkpoints/llava-v1.5-7b-pretrain/mm_projector.bin \
+    --pretrain_mm_mlp_adapter ${WORKDIR}/datasets/llarva/checkpoints/llava-v1.5-7b-pretrain/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \

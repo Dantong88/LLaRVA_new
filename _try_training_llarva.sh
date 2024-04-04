@@ -2,6 +2,8 @@
 
 #!/bin/bash
 
+ulimit -s unlimited
+
 export OMP_NUM_THREADS=56
 export MKL_NUM_THREADS=56
 export WANDB_MODE=offline

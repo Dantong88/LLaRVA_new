@@ -36,3 +36,5 @@ serve_images/
 
 # jquenum
 slurm-*
+*.txt
+scripts/untar_files.sh

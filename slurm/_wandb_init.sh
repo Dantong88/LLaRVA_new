@@ -5,5 +5,4 @@ echo "-----------------------------------------"
 echo "In Conda envrironment:" $CONDA_DEFAULT_ENV
 echo "-----------------------------------------"
 
-echo "-----------------------------------------"
-wandb-osh -- --sync-all
+wandb-osh

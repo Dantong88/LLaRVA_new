@@ -1,0 +1,10 @@
+mkdir: cannot create directory '/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94789': No such file or directory
+mkdir: cannot create directory '/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94789/logs': No such file or directory
+cp: cannot create regular file '/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94789/logs/': No such file or directory
+/var/spool/slurmd/job94789/slurm_script: line 88: /p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94789/logs/env.log: No such file or directory
+srun: error: raider-viz05: task 2: Exited with exit code 2
+srun: Terminating StepId=94789.0
+srun: error: raider-viz03: task 0: Terminated
+srun: error: raider-viz04: task 1: Terminated
+srun: error: raider-viz06: task 3: Terminated
+srun: Force Terminated StepId=94789.0

@@ -1,120 +1,135 @@
 #!/bin/bash
 
+# Parameters
+#SBATCH --exclude=raider-viz01,raider-viz02
+#SBATCH --output=created_dirs/slurm_dir/train_${SLURM_JOB_NUM_NODES}_nodes_llarva_%N/%j/%j_0_log.out
+#SBATCH --error=created_dirs/slurm_dir/train_${SLURM_JOB_NUM_NODES}_nodes_llarva_%N/%j/%j_0_log.err
 #SBATCH --account=ODEFN5169CYFZ
 #SBATCH --qos=frontier
-#SBATCH --nodes=8
-#SBATCH --ntasks=8
-#SBATCH --gres=gpu:a100:4
+#SBATCH --job-name=llarva
+#SBATCH --open-mode=append
+#SBATCH --signal=USR2@120
 #SBATCH --time=168:00:00
-#SBATCH -C mla
-#SBATCH --job-name=rpt
-#SBATCH --output="created_dirs/slurm_dir/train_N_nodes_rpt_%N_%n_%j.out"
-#SBATCH --error="created_dirs/slurm_dir/train_N_nodes_rpt_%N_%n_%j.err"
+#SBATCH --constraint=mla
+#SBATCH --nodes=4
+#SBATCH --ntasks=4
+#SBATCH --gres=gpu:a40:1
+#SBATCH -C viz
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=jquenum@berkeley.edu
+#SBATCH --mail-user=$USER@berkeley.edu
 #SBATCH --export=ALL
 #SBATCH --propagate=STACK
 
-ulimit -s unlimited
-
-show_separator() {
-        echo "________________________________________"
-}
-
-
-show_separator
-JOBID=`echo $SLURM_JOB_ID`
-show_separator
-source activate llarva
-show_separator
-echo "In Conda envrironment:" $CONDA_DEFAULT_ENV
-show_separator
-nvidia-smi
-show_separator
-echo "Starting at: $(date)"
-show_separator
-show_separator
-
-# Set the port number
-rendezvous_port=29500
-
-# # Function to find an available port within a range
-# find_available_port() {
-#     local port_range_start=$1
-#     local port_range_end=$2
-#     for port in $(seq "$port_range_start" "$port_range_end"); do
-#         if ! nc -zvw3 localhost "$port"; then
-#             echo "$port"
-#             return
-#         fi
-#     done
-#     echo "Error: No available port found in the specified range." >&2
-#     exit 1
-# }
-
-# # Set the port range
-# port_range_start=29399
-# port_range_end=55000
-
-# # Find an available port within the specified range
-# rendezvous_port=$(find_available_port "$port_range_start" "$port_range_end")
-# echo "Using port $rendezvous_port for rendezvous endpoint."
-
-# # Function to check firewall rules
-# check_firewall_rules() {
-#     echo "Checking firewall rules..."
-#     if iptables -C INPUT -p tcp --dport "$rendezvous_port" -s "$1" -j ACCEPT &>/dev/null; then
-#         echo "Firewall rule allowing traffic on port $rendezvous_port from $1 exists."
-#     else
-#         echo "Error: No firewall rule allowing traffic on port $rendezvous_port from $1 found."
-#         echo "Please ensure that the firewall allows incoming connections on port $rendezvous_port."
-#     fi
-# }
-
-
-# # Function to check connectivity to the rendezvous endpoint
-# check_rendezvous_connectivity() {
-#     echo "Checking connectivity to rendezvous endpoint: $1"
-#     if nc -zvw3 "$1" "$rendezvous_port"; then
-#         echo "Rendezvous endpoint is reachable."
-#     else
-#         echo "Error: Unable to connect to rendezvous endpoint."
-#         check_firewall_rules "$1"
-#         exit 1
-#     fi
-# }
-
-
-nodes=$(scontrol show hostnames $SLURM_JOB_NODELIST | xargs)
-
-## Extract individual nodes from the node range
-read -ra node_array <<< "$nodes"
-head_node=${node_array[0]}
-head_node_ip=$(getent hosts "$head_node" | awk '{print $1}')
-
-
-show_separator
-show_separator
-echo "all nodes:" ${node_array[@]}
-echo "head_node:" $head_node
-echo "head_node_ip:" $head_node_ip
-echo "Num nodes:" $SLURM_NNODES
-echo "Num tasks:" $SLURM_NTASKS
-echo "Job ID:" $SLURM_JOB_ID
-show_separator
-show_separator
-
-
-# Check rendezvous endpoint connectivity
-# check_rendezvous_connectivity "$head_node_ip"
-
-export LOGLEVEL=INFO
-export OMP_NUM_THREADS=56
-export MKL_NUM_THREADS=56
 export WANDB_MODE=offline
 
-deepspeed --num_nodes 5 --num_gpus 20 \
-    llava/train/train_mem.py \
+ulimit -s unlimited
+
+create_folder_if_not_exists() {
+    local folder_name="$1"
+    if [ ! -d "$folder_name" ]; then
+        mkdir "$folder_name"
+        echo "Folder '$folder_name' created."
+    else
+        echo "Folder '$folder_name' already exists."
+    fi
+}
+
+# setup
+export EXP_NAME="llarva"
+# export EXP_ID="${EXP_NAME}_${SLURM_JOB_ID}_${BC_HOST}"
+PROJ_ROOT="${HOME}/Projects/${EXP_NAME}"
+ENV_NAME=${EXP_NAME}
+
+OUTPUT_DIR="${WORKDIR}/outputs/llarva/llarva_training_dir_${SLURM_JOB_NUM_NODES}_nodes_${BC_HOST}/${SLURM_JOB_ID}"
+LOG_DIR="${OUTPUT_DIR}/logs"
+
+echo "PROJ_ROOT ${PROJ_ROOT}"
+echo "OUTPUT_DIR ${OUTPUT_DIR}"
+echo "LOG_DIR ${LOG_DIR}"
+
+# Check and create folder if the folder does not exists
+create_folder_if_not_exists "$OUTPUT_DIR"
+create_folder_if_not_exists "$LOG_DIR"
+
+pushd "${PROJ_ROOT}"
+cp "${PROJ_ROOT}/example_launch_scripts/manual.raider.slurm" "${LOG_DIR}/"
+
+# Source conda env
+if [[ -d "${HOME}/mambaforge" ]]; then
+    CONDA_FN="mamba"
+    CONDA_DIR="${HOME}/mambaforge"
+elif [[ -d "${HOME}/anaconda3" ]]; then
+    CONDA_FN="conda"
+    CONDA_DIR="${HOME}/anaconda3"
+elif [[ -d "${HOME}/miniconda3" ]]; then
+    CONDA_FN="conda"
+    CONDA_DIR="${HOME}/miniconda3"
+fi
+
+
+echo "CONDA_FN: $CONDA_FN"
+echo "CONDA_DIR: $CONDA_DIR"
+
+
+## Activate Conda (or Miniconda, or Mamba)
+echo "Sourcing CONDA_FN: '$CONDA_FN' from location: '${CONDA_DIR}'"
+if [ -d "${CONDA_DIR}/etc/profile.d" ]; then
+    echo "Sourcing ${CONDA_DIR}/etc/profile.d/conda.sh"
+    source "${CONDA_DIR}/etc/profile.d/conda.sh"
+fi
+if [ -f "${CONDA_DIR}/etc/profile.d/mamba.sh" ]; then
+    echo "Sourcing ${CONDA_DIR}/etc/profile.d/mamba.sh"
+    source "${CONDA_DIR}/etc/profile.d/mamba.sh"
+fi
+
+$CONDA_FN activate "${ENV_NAME}"
+$CONDA_FN info --envs
+
+env > "${LOG_DIR}/env.log"
+
+echo "START TIME: $(date)"
+
+# Job settings
+# export NGPUS_TOTAL=${SLURM_NTASKS}
+# TODO: See here: https://github.com/Lightning-AI/pytorch-lightning/issues/18650
+# Read that link and optimize our settings accordingly
+# export SRUN_CPUS_PER_TASK=128
+
+# * Distributed Setup
+### change 5-digit MASTER_PORT as you wish, slurm will raise Error if duplicated with others
+### change WORLD_SIZE as gpus/node * num_nodes
+export MASTER_PORT=29500
+# export WORLD_SIZE="${NGPUS_TOTAL}"
+
+### Get the first node name as master address - customized for vgg slurm
+### e.g. master(gnodee[2-5],gnoded1) == gnodee2
+echo "NODELIST="${SLURM_NODELIST}
+master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
+export MASTER_ADDR=$master_addr
+echo "MASTER_ADDR="$MASTER_ADDR
+
+# Prepare hostfile
+function makehostfile() {
+perl -e '$slots=split /,/, $ENV{"SLURM_GPUS_ON_NODE"};
+$slots=1 if $slots==0; # workaround for gpu machines
+@nodes = split /\n/, qx[scontrol show hostnames $ENV{"SLURM_JOB_NODELIST"}];
+print map { "$b$_ slots=$slots\n" } @nodes'
+}
+makehostfile > hostfile
+
+chmod +r ${HOME}/llarva/hostfile
+
+    # --num_gpus ${SLURM_GPUS_ON_NODE} \
+    # --num_nodes ${SLURM_JOB_NUM_NODES} \
+# OTHER LAUNCHERS CAN BE USED HERE
+export LAUNCHER="deepspeed \
+    --hostfile ${HOME}/llarva/hostfile \
+    "
+
+
+# CHANGE HERE THE SCRIPT AND WHATEVER ARGS IT NEEDS
+PROGRAM="\
+llava/train/train_mem.py \
     --deepspeed ${HOME}/Projects/llarva/scripts/zero2.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version plain \
@@ -127,7 +142,7 @@ deepspeed --num_nodes 5 --num_gpus 20 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir ./checkpoints/llava-v1.5-7b-pretrain_exp4 \
+    --output_dir ${WORKDIR}/outputs/llarva/llarva_training_dir_${SLURM_JOB_NUM_NODES}_nodes_${BC_HOST}/${SLURM_JOB_ID}/logs \
     --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 32 \
@@ -137,7 +152,7 @@ deepspeed --num_nodes 5 --num_gpus 20 \
     --save_strategy "steps" \
     --save_steps 1000 \
     --save_total_limit 1 \
-    --learning_rate 1e-3 \
+    --learning_rate 0.001 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
@@ -148,8 +163,28 @@ deepspeed --num_nodes 5 --num_gpus 20 \
     --dataloader_num_workers 4 \
     --lazy_preprocess True \
     --report_to wandb
+"
+
+echo "PROGRAM $PROGRAM"
+
+# Debugging vars for the run
+export NCCL_ASYNC_ERROR_HANDLING=1
+export HYDRA_FULL_ERROR=1           # Hydra full error
+export OC_CAUSE=1                   # OmegaConf full trace
 
 
-show_separator
-echo "Done at: $(date)"
-show_separator
+# srun error handling:
+# --wait=60: wait 60 sec after the first task terminates before terminating all remaining tasks
+# --kill-on-bad-exit=1: terminate a step if any task exits with a non-zero exit code
+SRUN_ARGS=" \
+    --unbuffered \
+    --output ${OUTPUT_DIR}/%j_%t_log.out \
+    --error ${OUTPUT_DIR}/%j_%t_log.err \
+    --wait=60 \
+    --kill-on-bad-exit=1 \
+    "
+
+# command
+srun $SRUN_ARGS bash -c "$LAUNCHER $PROGRAM"
+
+echo "END TIME: $(date)"

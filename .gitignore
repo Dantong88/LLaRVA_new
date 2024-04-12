@@ -38,3 +38,7 @@ serve_images/
 slurm-*
 *.txt
 scripts/untar_files.sh
+llarva.code-workspace
+
+# vscode
+llarva.code-workspace

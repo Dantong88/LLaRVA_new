@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# function mv_data() {
+#     local dataset_name="${1}"
+#     local UNTAR_DIR="/p/work1/jquenum/datasets/llarva/v2/untar_dir"
+#     local IM_DIR="/p/work1/jquenum/datasets/llarva/v2/images"
+
+#     local destination="$IM_DIR/$dataset_name"
+#     local untar_in_destination="$IM_DIR/untar_dir"
+
+#     # Check if the dataset already exists at the destination
+#     if [ -d "$destination" ]; then
+#         echo "Dataset $dataset_name already exists at $destination. Deleting existing dataset..."
+#         rm -rf "$destination"
+#     fi
+
+#     # Move the dataset from source to destination
+#     mv "$UNTAR_DIR/$dataset_name" "$IM_DIR/"
+
+#     # Check if the untar_dir exists before attempting to delete it
+#     if [ -d "$UNTAR_DIR" ]; then
+#         echo "Removing untar_dir folder and its contents..."
+#         rm -rf "$UNTAR_DIR"
+#     fi
+# }
+
+mv_data "turn"
+mv_data "mark"
+mv_data "take"
+mv_data "hold"
+mv_data "measure"
+mv_data "soak"
+mv_data "utokyo_pr2_opening_fridge_converted_externally_to_rlds"
+mv_data "utokyo_xarm_pick_and_place_converted_externally_to_rlds"
+mv_data "rip"
+mv_data "stretch"
+mv_data "roboturk"
+mv_data "sharpen"
+mv_data "throw"
+mv_data "pat"
+mv_data "unfreeze"
+mv_data "pull"
+mv_data "kaist_nonprehensile_converted_externally_to_rlds"
+mv_data "lock"
+mv_data "language_table"
+mv_data "uncover"
+mv_data "look"
+mv_data "robo_net"
+mv_data "unscrew"
+mv_data "form"
+mv_data "remove"
+mv_data "gather"
+mv_data "scrub"
+mv_data "stanford_hydra_dataset_converted_externally_to_rlds"
+mv_data "kuka"
+mv_data "taco_play"
+mv_data "season"
+mv_data "prepare"
+mv_data "stab"
+mv_data "sort"
+mv_data "search"
+mv_data "unroll"
+mv_data "unlock"
+mv_data "turn-down"
+mv_data "utaustin_mutex"
+mv_data "toto"
+mv_data "unwrap"
+mv_data "smell"
+mv_data "wear"
+mv_data "stanford_kuka_multimodal_dataset_converted_externally_to_rlds"
+mv_data "wash"
+mv_data "screw"
+mv_data "ucsd_pick_and_place_dataset_converted_externally_to_rlds"
+mv_data "spray"
+mv_data "use"
+mv_data "stanford_robocook_converted_externally_to_rlds"
+mv_data "scrape"
+mv_data "squeeze"
+mv_data "utokyo_pr2_tabletop_manipulation_converted_externally_to_rlds"
+mv_data "water"
+mv_data "viola"
+mv_data "turn-on"
+mv_data "wait"
+mv_data "stanford_mask_vit_converted_externally_to_rlds"
+mv_data "slide"
+mv_data "sprinkle"
+mv_data "rub"
+mv_data "scoop"
+mv_data "set"
+mv_data "roll"
+mv_data "shake"
+mv_data "press"
+mv_data "serve"
+mv_data "turn-off"
+mv_data "transition"
+mv_data "switch"
+mv_data "mix"
+mv_data "tokyo_u_lsmo_converted_externally_to_rlds"
+# mv_data "grate"
+
+
+echo "!!!!!!!!! DONE !!!!!!!!!"
+

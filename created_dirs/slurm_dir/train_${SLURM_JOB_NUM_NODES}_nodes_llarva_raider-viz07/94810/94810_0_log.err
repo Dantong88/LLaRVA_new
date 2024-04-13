@@ -1,5 +1,0 @@
-mkdir: cannot create directory '/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94810': No such file or directory
-mkdir: cannot create directory '/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94810/logs': No such file or directory
-cp: cannot create regular file '/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94810/logs/': No such file or directory
-/var/spool/slurmd/job94810/slurm_script: line 88: /p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/94810/logs/env.log: No such file or directory
-chmod: cannot access '/p/home/jquenum/llarva/hostfile': No such file or directory

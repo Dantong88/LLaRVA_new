@@ -2,8 +2,8 @@
 
 # Parameters
 #SBATCH --exclude=raider-viz01,raider-viz02
-#SBATCH --output=created_dirs/slurm_dir/train_${SLURM_JOB_NUM_NODES}_nodes_llarva_%N/%j/%j_0_log.out
-#SBATCH --error=created_dirs/slurm_dir/train_${SLURM_JOB_NUM_NODES}_nodes_llarva_%N/%j/%j_0_log.err
+#SBATCH --output=/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/%j/%j_MAIN_log.out.log
+#SBATCH --error=/p/work1/jquenum/outputs/llarva/llarva_training_dir_4_nodes_raider/%j/%j_MAIN_log.err.log
 #SBATCH --account=ODEFN5169CYFZ
 #SBATCH --qos=frontier
 #SBATCH --job-name=llarva
@@ -16,7 +16,7 @@
 #SBATCH --gres=gpu:a40:1
 #SBATCH -C viz
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=$USER@berkeley.edu
+#SBATCH --mail-user=jquenum@berkeley.edu
 #SBATCH --export=ALL
 #SBATCH --propagate=STACK
 
@@ -90,7 +90,7 @@ env > "${LOG_DIR}/env.log"
 echo "START TIME: $(date)"
 
 # Job settings
-# export NGPUS_TOTAL=${SLURM_NTASKS}
+export NGPUS_TOTAL=${SLURM_NTASKS}
 # TODO: See here: https://github.com/Lightning-AI/pytorch-lightning/issues/18650
 # Read that link and optimize our settings accordingly
 # export SRUN_CPUS_PER_TASK=128
@@ -99,7 +99,7 @@ echo "START TIME: $(date)"
 ### change 5-digit MASTER_PORT as you wish, slurm will raise Error if duplicated with others
 ### change WORLD_SIZE as gpus/node * num_nodes
 export MASTER_PORT=29500
-# export WORLD_SIZE="${NGPUS_TOTAL}"
+export WORLD_SIZE="${NGPUS_TOTAL}"
 
 ### Get the first node name as master address - customized for vgg slurm
 ### e.g. master(gnodee[2-5],gnoded1) == gnodee2
@@ -115,57 +115,62 @@ $slots=1 if $slots==0; # workaround for gpu machines
 @nodes = split /\n/, qx[scontrol show hostnames $ENV{"SLURM_JOB_NODELIST"}];
 print map { "$b$_ slots=$slots\n" } @nodes'
 }
-makehostfile > hostfile
 
-chmod +r ${HOME}/llarva/hostfile
 
+makehostfile > ${OUTPUT_DIR}/hostfile
+
+
+#${SLURM_GPUS_ON_NODE}
     # --num_gpus ${SLURM_GPUS_ON_NODE} \
     # --num_nodes ${SLURM_JOB_NUM_NODES} \
 # OTHER LAUNCHERS CAN BE USED HERE
-export LAUNCHER="deepspeed \
-    --hostfile ${HOME}/llarva/hostfile \
-    "
+export LAUNCHER="deepspeed \\
+    --hostfile ${OUTPUT_DIR}/hostfile \\
+    --master_port "${MASTER_PORT}" \\
+    --master_addr "${MASTER_ADDR}" \\
+    --num_nodes ${SLURM_JOB_NUM_NODES} \\
+    --num_gpus 1 \\
+    --no_ssh_check"
 
 
 # CHANGE HERE THE SCRIPT AND WHATEVER ARGS IT NEEDS
-PROGRAM="\
-llava/train/train_mem.py \
-    --deepspeed ${HOME}/Projects/llarva/scripts/zero2.json \
-    --model_name_or_path lmsys/vicuna-7b-v1.5 \
-    --version plain \
-    --data_path ${WORKDIR}/datasets/llarva/exp4/train-34053947.json::${WORKDIR}/datasets/llarva/exp4/val-36743.json \
-    --image_folder ${WORKDIR}/datasets/llarva/v2 \
-    --vision_tower openai/clip-vit-large-patch14-336 \
-    --mm_projector_type mlp2x_gelu \
-    --tune_mm_mlp_adapter True \
-    --mm_vision_select_layer -2 \
-    --mm_use_im_start_end False \
-    --mm_use_im_patch_token False \
-    --bf16 True \
-    --output_dir ${WORKDIR}/outputs/llarva/llarva_training_dir_${SLURM_JOB_NUM_NODES}_nodes_${BC_HOST}/${SLURM_JOB_ID}/logs \
-    --num_train_epochs 1 \
-    --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 32 \
-    --gradient_accumulation_steps 1 \
-    --evaluation_strategy "steps" \
-    --eval_steps 1000 \
-    --save_strategy "steps" \
-    --save_steps 1000 \
-    --save_total_limit 1 \
-    --learning_rate 0.001 \
-    --weight_decay 0. \
-    --warmup_ratio 0.03 \
-    --lr_scheduler_type "cosine" \
-    --logging_steps 1 \
-    --tf32 True \
-    --model_max_length 2048 \
-    --gradient_checkpointing True \
-    --dataloader_num_workers 4 \
-    --lazy_preprocess True \
+PROGRAM="llava/train/train_mem.py \\
+    --deepspeed ${HOME}/Projects/llarva/scripts/zero2.json \\
+    --model_name_or_path lmsys/vicuna-7b-v1.5 \\
+    --version plain \\
+    --data_path ${WORKDIR}/datasets/llarva/exp4/train-34053947.json::${WORKDIR}/datasets/llarva/exp4/val-36743.json \\
+    --image_folder ${WORKDIR}/datasets/llarva/v2 \\
+    --vision_tower openai/clip-vit-large-patch14-336 \\
+    --mm_projector_type mlp2x_gelu \\
+    --tune_mm_mlp_adapter True \\
+    --mm_vision_select_layer -2 \\
+    --mm_use_im_start_end False \\
+    --mm_use_im_patch_token False \\
+    --bf16 True \\
+    --output_dir ${WORKDIR}/outputs/llarva/llarva_training_dir_${SLURM_JOB_NUM_NODES}_nodes_${BC_HOST}/${SLURM_JOB_ID}/logs \\
+    --num_train_epochs 1 \\
+    --per_device_train_batch_size 16 \\
+    --per_device_eval_batch_size 32 \\
+    --gradient_accumulation_steps 1 \\
+    --evaluation_strategy "steps" \\
+    --eval_steps 1000 \\
+    --save_strategy "steps" \\
+    --save_steps 1000 \\
+    --save_total_limit 1 \\
+    --learning_rate 0.001 \\
+    --weight_decay 0. \\
+    --warmup_ratio 0.03 \\
+    --lr_scheduler_type "cosine" \\
+    --logging_steps 1 \\
+    --tf32 True \\
+    --model_max_length 2048 \\
+    --gradient_checkpointing True \\
+    --dataloader_num_workers 4 \\
+    --lazy_preprocess True \\
     --report_to wandb
 "
 
-echo "PROGRAM $PROGRAM"
+# echo "PROGRAM ${PROGRAM}"
 
 # Debugging vars for the run
 export NCCL_ASYNC_ERROR_HANDLING=1
@@ -176,15 +181,22 @@ export OC_CAUSE=1                   # OmegaConf full trace
 # srun error handling:
 # --wait=60: wait 60 sec after the first task terminates before terminating all remaining tasks
 # --kill-on-bad-exit=1: terminate a step if any task exits with a non-zero exit code
-SRUN_ARGS=" \
-    --unbuffered \
-    --output ${OUTPUT_DIR}/%j_%t_log.out \
-    --error ${OUTPUT_DIR}/%j_%t_log.err \
-    --wait=60 \
-    --kill-on-bad-exit=1 \
+SRUN_ARGS=" \\
+    --unbuffered \\
+    --output ${OUTPUT_DIR}/%j_%t_log.out.log \\
+    --error ${OUTPUT_DIR}/%j_%t_log.err.log \\
+    --wait=60 \\
+    --kill-on-bad-exit=1
     "
 
+echo "LAUNCHER ${LAUNCHER}"
+echo ""
+echo "PROGRAM ${PROGRAM}"
+echo ""
+echo "LAUNCHER PROGRAM ${LAUNCHER} ${PROGRAM}"
+
 # command
-srun $SRUN_ARGS bash -c "$LAUNCHER $PROGRAM"
+# srun $SRUN_ARGS bash -c "${LAUNCHER} ${PROGRAM}"
+bash -c "${LAUNCHER} ${PROGRAM}"
 
 echo "END TIME: $(date)"

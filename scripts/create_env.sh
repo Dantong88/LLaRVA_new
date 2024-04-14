@@ -8,35 +8,64 @@ PROJ_ROOT="$(realpath "${SCRIPTS_DIR}"/../)"
 
 PYTHON_VERSION=3.10
 ENV_NAME="llarva"
-# use export for this one so FORCE_CUDA is set for any sub-processes launched by this script:
+# * use export for this one so FORCE_CUDA is set for any sub-processes launched by this script:
 export FORCE_CUDA=1
 echo "ENV_NAME: ${ENV_NAME}"
+echo "hostname: ${HOSTNAME}"
 
-## Load lmod Modules
+# * Load lmod Modules
 set +e
-if command -v module &> /dev/null
-then
-    module load cuda
-    # module load python/3.9-anaconda-2021.11
+echo ""
+echo ""
+echo "=========================================================="
+echo "loading modules"
+. $MODULESHOME/init/bash || true
+if command -v module &>/dev/null; then
+    # module load cuda || true # does not exist on warhawk
+    echo "loading cseinit"
+    module load cseinit || true
+    module load cuda || true
+    # nvcc -V || true
+
+    if [[ $BC_HOST == "raider" ]]; then
+        echo "loading modules for $BC_HOST"
+    elif [[ $BC_HOST == "nautilus" ]]; then
+        echo "loading modules for $BC_HOST"
+    elif [[ $BC_HOST == "warhawk" ]]; then
+        echo "loading modules for $BC_HOST"
+        # error on raider (unable to locate a module file for nvidia/22.3)
+        echo "loading nvidia/22.3"
+        module load nvidia/22.3 || true
+        nvcc -V || true
+    else
+        echo "Unknown center: $BC_HOST"
+        exit 1
+    fi
 fi
 set -e
 
-
-# Feel free to customize this section, but this setup just picks the first comda or mamba
-# installation tht it finds in the following order:
+echo ""
+echo ""
+echo "=========================================================="
+echo "Loading conda..."
+export PYTHONPATH=""
+unset PYTHONPATH
+echo "PYTHONPATH: ${PYTHONPATH}"
+CONDA_FN="conda"
 if [[ -d "${HOME}/mambaforge" ]]; then
-    ## If you use mamba:
     CONDA_FN="mamba"
     CONDA_DIR="${HOME}/mambaforge"
 elif [[ -d "${HOME}/anaconda3" ]]; then
-    ## If you use conda on a normal (local) computer:
-    CONDA_FN="conda"
     CONDA_DIR="${HOME}/anaconda3"
+elif [[ -d "${HOME}/miniconda3" ]]; then
+    CONDA_DIR="${HOME}/miniconda3"
 elif [[ -d "/global/common/software/nersc/pm-2022q3/sw/python/3.9-anaconda-2021.11" ]]; then
     ## If you use conda on an HPC cluster:
-    CONDA_FN="conda"
     CONDA_DIR="/global/common/software/nersc/pm-2022q3/sw/python/3.9-anaconda-2021.11"
 fi
+
+echo "CONDA_FN: $CONDA_FN"
+echo "CONDA_DIR: $CONDA_DIR"
 
 ##
 ## Activate Conda (or Miniconda, or Mamba)
@@ -52,40 +81,30 @@ fi
 ##
 ## Remove env if exists:
 set +e
-if [ -d "${CONDA_DIR}/envs/${ENV_NAME}" ]; then
-    $CONDA_FN deactivate && $CONDA_FN env remove --name "${ENV_NAME}"
-    rm -rf "${CONDA_DIR}/envs/${ENV_NAME}"
+echo ""
+echo ""
+echo "=========================================================="
+CONDA_ENV_DIR=$(conda info | grep -i "envs directories" | sed "s/envs directories : //")
+CONDA_ENV_DIR=$(echo "${CONDA_ENV_DIR}" | sed 's/[[:blank:]]//g')
+CONDA_ENV_DIR="${CONDA_ENV_DIR}/${ENV_NAME}"
+echo "Checking if we need to remove env ('${CONDA_ENV_DIR}')"
+if [ -d "${CONDA_ENV_DIR}" ]; then
+    echo "removing environment: ${ENV_NAME}"
+    $CONDA_FN deactivate && $CONDA_FN env remove --name "${ENV_NAME}" -y || true
+    echo "deleting ${CONDA_ENV_DIR}"
+    rm -rf "${CONDA_ENV_DIR}" || true
 fi
+echo "Finished removing env"
+ls -lah "${CONDA_ENV_DIR}" || true
 set -e
 
-function install_pytorch_cuda() {
-    echo "Installing pytorch"
-    # $CONDA_FN install -y pytorch==1.9.0 torchvision==0.10.0 torchaudio==0.9.0 cudatoolkit=11.3 -c pytorch -c conda-forge
-
-    # If you have trouble installing torch, i.e, package manager installs cpu version, or wrong version,
-    # might need to specify channel version, and cuda using this method. Additionally, it could help to
-    # search the package repositories to see what packages and build versions are available, using:
-    #   `conda search "pytorch[build=*cuda11.1*,version=1.8.1,channel=pytorch]"`
-    #   `conda search "pytorch[build=*cuda12*,channel=pytorch]"`
-    #
-    # $CONDA_FN install \
-    #     "pytorch[build=*cuda11.1*,version=1.8.1,channel=pytorch]" \
-    #     "torchvision[build=*_cu111*,version=0.9.1,channel=pytorch]" \
-    #     cudatoolkit=11.1 \
-    #     -c pytorch -c conda-forge -c anaconda -y
-
-    # $CONDA_FN install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -c conda-forge --solver=libmamba
-
-
-    $CONDA_FN install \
-        pytorch[build=*cuda*,channel=pytorch,version=2.1.2] \
-        pytorch-cuda==11.8 \
-        torchvision \
-        -c pytorch -c nvidia -c conda-forge --solver=libmamba -y
-}
 
 ##
 ## Create env:
+echo ""
+echo ""
+echo "=========================================================="
+echo "Creating conda env: ${ENV_NAME}"
 $CONDA_FN create --name "${ENV_NAME}" python=="${PYTHON_VERSION}" -y
 $CONDA_FN activate "${ENV_NAME}"
 echo "Current environment: "
@@ -96,6 +115,15 @@ $CONDA_FN install conda-libmamba-solver -y
 ##
 ## Base dependencies
 echo "Installing requirements..."
+function install_pytorch_cuda() {
+    echo "Installing pytorch"
+    $CONDA_FN install \
+        pytorch[build=*cuda*,channel=pytorch,version=2.1.2] \
+        pytorch-cuda==11.8 \
+        torchaudio \
+        torchvision \
+        -c pytorch -c nvidia --solver=libmamba -y
+}
 install_pytorch_cuda
 pip install --upgrade setuptools wheel
 
@@ -136,6 +164,5 @@ install_pytorch_cuda
 $CONDA_FN list
 
 ## Check if we can load cuda:
-echo "Doing a quick check for torch.cuda:"
-python -c "import torch; print('torch.cuda.is_available: ', torch.cuda.is_available())"
+"${PROJ_ROOT}/scripts/env_check.sh"
 echo "Done!"

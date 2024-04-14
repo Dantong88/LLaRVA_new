@@ -34,7 +34,11 @@ ckpts*
 # Demo
 serve_images/
 
-# jquenum
+*.code-workspace
 slurm-*
 *.txt
 scripts/untar_files.sh
+*junk*
+created_dirs
+created_dirs/
+*.log

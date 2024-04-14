@@ -42,3 +42,6 @@ scripts/untar_files.sh
 created_dirs
 created_dirs/
 *.log
+output/
+created_dirs/
+

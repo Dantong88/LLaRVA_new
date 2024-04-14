@@ -134,6 +134,7 @@ pushd "${PROJ_ROOT}"
 
 ## Install this repo (llarva):
 pip install -e ".[train]"
+pip install -r requirements_hpc.txt
 pip install flash-attn --no-build-isolation --no-cache-dir
 
 popd

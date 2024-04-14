@@ -135,8 +135,8 @@ class LengthGroupedSampler(Sampler):
 
 
 class LLaVATrainer(Trainer):
-    def log():
-        super().log()
+    def log(self, logs):
+        super().log(logs)
         trigger_sync()
 
     def _get_train_sampler(self) -> Optional[torch.utils.data.Sampler]:

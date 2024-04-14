@@ -44,4 +44,4 @@ created_dirs/
 *.log
 output/
 created_dirs/
-
+*.code-workspace

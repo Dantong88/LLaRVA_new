@@ -14,13 +14,16 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from ast import Str
 import os
 import copy
+import deepspeed
 from dataclasses import dataclass, field
 import json
 import logging
 import pathlib
 from typing import Dict, Optional, Sequence, List
+import sys
 
 import torch
 
@@ -811,12 +814,51 @@ def make_supervised_data_module(tokenizer: transformers.PreTrainedTokenizer,
                     data_collator=data_collator)
 
 
+@dataclass
+class DistInitParams:
+    master_address: str
+    master_port: int
+    world_size: int
+    global_rank: int
+    local_rank: int
+    backend: str = "c10d"
+
+
+def get_dist_init_params():
+    return DistInitParams(
+        master_address=os.environ["MASTER_ADDR"],
+        master_port=int(os.environ["MASTER_PORT"]),
+        world_size=int(os.environ["WORLD_SIZE"]),
+        global_rank=int(os.environ["SLURM_PROCID"]),
+        local_rank=int(os.environ["SLURM_LOCALID"]),
+    )
+
+
 def train(attn_implementation=None):
     global local_rank
-
+    dist_params = get_dist_init_params()
     parser = transformers.HfArgumentParser(
         (ModelArguments, DataArguments, TrainingArguments))
+    # parser = deepspeed.add_config_arguments(parser)
+    print("dist_config: ", dist_params)
+    deepspeed.init_distributed(
+        dist_backend="nccl",
+        auto_mpi_discovery=False,
+        distributed_port=os.environ["MASTER_PORT"],
+        verbose=True,
+        dist_init_required=True,
+        # config="",
+        rank=dist_params.global_rank,
+        world_size=dist_params.world_size
+    )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+
+    print("model_args: ", model_args)
+    print("data_args: ", data_args)
+    print("training_args: ", training_args)
+
+    # sys.exit()
+
     # training_args.do_eval = True
     # training_args.evaluation_strategy = 'steps'
     # training_args.eval_steps = 1000

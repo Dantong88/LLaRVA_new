@@ -12,6 +12,7 @@ if __name__ == "__main__":
             or "WORLD" in k
             or "NODE" in k
             or "SLURM" in k
+            or "MASTER" in k
         ) and not ("VSCODE" in k):
             print(f"{k}: {v}")
     train(attn_implementation="flash_attention_2")

@@ -834,9 +834,15 @@ def get_dist_init_params():
     )
 
 
+def set_distributed_env_vars(dist_params: DistInitParams):
+    os.environ["RANK"] = str(dist_params.global_rank)
+    os.environ["LOCAL_RANK"] = str(dist_params.local_rank)
+
+
 def train(attn_implementation=None):
     global local_rank
     dist_params = get_dist_init_params()
+    set_distributed_env_vars(dist_params)
     parser = transformers.HfArgumentParser(
         (ModelArguments, DataArguments, TrainingArguments))
     # parser = deepspeed.add_config_arguments(parser)

@@ -69,14 +69,14 @@ cat - >launch.slurm <<EOT
 #SBATCH --open-mode=append
 #SBATCH --signal=USR2@120
 ## time: format is: d-hhh:mm:ss
-#SBATCH --time=000:60:00
+#SBATCH --time=000:30:00
 #SBATCH --constraint=mla
 ## qos: Get a list of possible values using: "sacctmgr show qos"
 ##  - raider: background | debug | frontier | hie | high | normal | standard | transfer | urgent
 ##  - nautilus:
 ##      standard | transfer | background | debug | frontier | frontier_long | hie | high | int_transfer
 ##      | normal | short-mla-frontier | short-mla-high | short-mla-standard  | urgent
-#SBATCH --qos=frontier
+#SBATCH --qos=debug
 ## gres:
 ##  - raider/nautilus have 1x(A40 48GB) 's for viz nodes, and 4x(A100 40GB)'s for mla nodes:
 #SBATCH --gres=gpu:a100:${NGPUS_PER_NODE}
@@ -154,14 +154,20 @@ export ZMASTER_ADDR=\$(scontrol show hostnames "\$SLURM_JOB_NODELIST" | head -n 
 echo "ZMASTER_ADDR:ZMASTER_PORT="\${ZMASTER_ADDR}:${ZMASTER_PORT}
 
 ### Change 5-digit MASTER_PORT as you wish, slurm will raise Error if duplicated with others
-export MASTER_ADDR="\$master_addr"
+export MASTER_ADDR="\${master_addr}"
 export MASTER_PORT=29500
 export WORLD_SIZE="\${NGPUS_TOTAL}"
-export RANK="\${SLURM_PROCID}"
+export RANK="\${SLURM_PROCID}"          # global rank
 export LOCAL_RANK="\${SLURM_LOCALID}"
 
 echo "SLURM_NODELIST=\${SLURM_NODELIST}"
-echo "MASTER_ADDR: \$MASTER_ADDR"
+echo "MASTER_ADDR: \${MASTER_ADDR}"
+echo "MASTER_PORT: \${MASTER_PORT}"
+echo "WORLD_SIZE: \${WORLD_SIZE}"
+echo "RANK: \${RANK}"
+echo "LOCAL_RANK: \${LOCAL_RANK}"
+echo "SLURM_PROCID: \${SLURM_PROCID}"
+echo "SLURM_LOCALID: \${SLURM_LOCALID}"
 
 # Debugging vars for the run
 export HYDRA_FULL_ERROR=1           # Hydra full error

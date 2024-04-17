@@ -196,7 +196,7 @@ srun \\
         --mm_use_im_patch_token False \\
         --bf16 True \\
         --output_dir "\${OUTPUT_DIR}/checkpoints/llava-v1.5-7b-pretrain_exp4" \\
-        --num_train_epochs 100 \\
+        --num_train_epochs 1 \\
         --per_device_train_batch_size 8 \\
         --per_device_eval_batch_size 16 \\
         --gradient_accumulation_steps 2 \\

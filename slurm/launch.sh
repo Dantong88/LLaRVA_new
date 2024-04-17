@@ -147,12 +147,6 @@ env
 ### e.g. master(gnodee[2-5],gnoded1) == gnodee2
 master_addr=\$(scontrol show hostnames "\$SLURM_NODELIST" | head -n 1)
 
-echo ""
-# Thanks for shell-ideas to https://github.com/PrincetonUniversity/multi_gpu_training
-export ZMASTER_PORT=\$(expr 10000 + \$(echo -n \$SLURM_JOBID | tail -c 4))
-export ZMASTER_ADDR=\$(scontrol show hostnames "\$SLURM_JOB_NODELIST" | head -n 1)
-echo "ZMASTER_ADDR:ZMASTER_PORT="\${ZMASTER_ADDR}:${ZMASTER_PORT}
-
 ### Change 5-digit MASTER_PORT as you wish, slurm will raise Error if duplicated with others
 export MASTER_ADDR="\${master_addr}"
 export MASTER_PORT=29500
@@ -164,6 +158,8 @@ echo "SLURM_NODELIST=\${SLURM_NODELIST}"
 echo "MASTER_ADDR: \${MASTER_ADDR}"
 echo "MASTER_PORT: \${MASTER_PORT}"
 echo "WORLD_SIZE: \${WORLD_SIZE}"
+# RANK and LOCAL_RANK must be set from within the python code, because SLURM_PROCID and
+# SLURM_LOCALID aren't set until after "srun" launchs the processes.
 echo "RANK: \${RANK}"
 echo "LOCAL_RANK: \${LOCAL_RANK}"
 echo "SLURM_PROCID: \${SLURM_PROCID}"
@@ -227,4 +223,4 @@ EOT
 cp launch.slurm "${OUTPUT_DIR}/launch.slurm"
 
 # * Add to SLURM queue:
-# sbatch "${OUTPUT_DIR}/launch.slurm"
+sbatch "${OUTPUT_DIR}/launch.slurm"

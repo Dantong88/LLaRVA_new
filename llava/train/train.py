@@ -853,7 +853,6 @@ def train(attn_implementation=None):
         distributed_port=os.environ["MASTER_PORT"],
         verbose=True,
         dist_init_required=True,
-        # config="",
         rank=dist_params.global_rank,
         world_size=dist_params.world_size
     )

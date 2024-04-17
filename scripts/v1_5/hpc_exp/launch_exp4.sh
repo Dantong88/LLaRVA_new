@@ -13,7 +13,7 @@ export PROJ_ROOT="$(git rev-parse --show-toplevel)"
 # * identifiers like SLURM_JOB_ID. This should be part of the EXP_ID. It is also OK to
 # * make EXP_ID and EXP_NAME have the same value. The only difference is that EXP_ID
 # * might have more specific values as part of the name in addition to EXP_NAME.
-export EXP_NAME="exp4_8gpus"
+export EXP_NAME="exp4_8gpus_fulldataset"
 
 # * EXP_ID should be used as part of the OUTPUT_DIR, and WANDB_RUN name. It is a unique
 # * identifier for an experiment/run and should mostly be human readable. In some cases we
@@ -27,7 +27,7 @@ export EXP_ID="${EXP_NAME}"
 # * the .slurm script so they both log to the same place:
 export OUTPUT_DIR="${PROJ_ROOT}/output/${EXP_ID}"
 export LOG_DIR="${OUTPUT_DIR}/logs"
-export DATA_DIR="${PROJECTS_HOME}/nga-frontier/llarva/data"
+export DATA_DIR="${PROJECTS_HOME}/nga-frontier/llarva_datasets"
 
 # * Job settings
 export NPROCS_PER_NODE=128
@@ -173,6 +173,10 @@ export NCCL_DEBUG=WARN
 # command
 pushd "\${PROJ_ROOT}"
 
+export WANDB_NAME="\${EXP_ID}"
+export WANDB_ENTITY="rpt_x"
+export WANDB_PROJECT="llarvax"
+
 srun \\
     --unbuffered \\
     --output "\${LOG_DIR}/%j/node%n-task%t-srun.out.log" \\
@@ -211,7 +215,8 @@ srun \\
         --gradient_checkpointing True \\
         --dataloader_num_workers 4 \\
         --lazy_preprocess True \\
-        --report_to "wandb"
+        --report_to "wandb" \\
+        --run_name "\${EXP_ID}"
 
 EOT
 

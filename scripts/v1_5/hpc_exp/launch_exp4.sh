@@ -159,7 +159,7 @@ echo "MASTER_ADDR: \${MASTER_ADDR}"
 echo "MASTER_PORT: \${MASTER_PORT}"
 echo "WORLD_SIZE: \${WORLD_SIZE}"
 # RANK and LOCAL_RANK must be set from within the python code, because SLURM_PROCID and
-# SLURM_LOCALID aren't set until after "srun" launchs the processes.
+# SLURM_LOCALID aren't set until after "srun" launches the processes.
 echo "RANK: \${RANK}"
 echo "LOCAL_RANK: \${LOCAL_RANK}"
 echo "SLURM_PROCID: \${SLURM_PROCID}"
@@ -223,4 +223,4 @@ EOT
 cp launch.slurm "${OUTPUT_DIR}/launch.slurm"
 
 # * Add to SLURM queue:
-# sbatch "${OUTPUT_DIR}/launch.slurm"
+sbatch "${OUTPUT_DIR}/launch.slurm"

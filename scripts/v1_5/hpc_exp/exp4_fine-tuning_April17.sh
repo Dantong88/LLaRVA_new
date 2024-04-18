@@ -15,7 +15,7 @@ export PROJ_ROOT="$(git rev-parse --show-toplevel)"
 # * identifiers like SLURM_JOB_ID. This should be part of the EXP_ID. It is also OK to
 # * make EXP_ID and EXP_NAME have the same value. The only difference is that EXP_ID
 # * might have more specific values as part of the name in addition to EXP_NAME.
-export EXP_NAME="exp5-wo_traj-fine-tuning_2024-04-17"
+export EXP_NAME="exp4-wo_traj-fine-tuning_2024-04-17"
 
 # * EXP_ID should be used as part of the OUTPUT_DIR, and WANDB_RUN name. It is a unique
 # * identifier for an experiment/run and should mostly be human readable. In some cases we

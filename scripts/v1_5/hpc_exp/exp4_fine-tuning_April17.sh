@@ -195,8 +195,8 @@ srun \\
         --deepspeed ./scripts/zero3.json \\
         --model_name_or_path lmsys/vicuna-7b-v1.5 \\
         --version v1 \\
-        --data_path ${WORKDIR}/datasets/llarva/exp4/train-34053947.json::${WORKDIR}/datasets/llarva/exp4/val-36743.json \\
-        --image_folder ${WORKDIR}/datasets/llarva/v2 \\
+        --data_path "\${WORKDIR}/datasets/llarva/exp4/train-34053947.json::\${WORKDIR}/datasets/llarva/exp4/val-36743.json" \\
+        --image_folder "\${WORKDIR}/datasets/llarva/v2" \\
         --vision_tower openai/clip-vit-large-patch14-336 \\
         --pretrain_mm_mlp_adapter "\${PROJECTS_HOME}/nga-frontier/llarva/llava/checkpoints/llava-v1.5-7b-pretrain/mm_projector.bin" \\
         --mm_projector_type mlp2x_gelu \\

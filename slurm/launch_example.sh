@@ -88,6 +88,13 @@ cat - >launch.slurm <<EOT
 #SBATCH --gpu-bind=none                   # NCCL can't deal with task-binding...
 #SBATCH --cpus-per-task=${NCPUS_PER_TASK}
 
+# * Don't know if these are needed, they were copied from Jerome attempts that hit an ~8GB
+# * memory limit with an old version of a .slurm script which had different settings, so
+# * the issue that the propagate and ulimit was addressing might not apply to this current
+# * script:
+#SBATCH --export=ALL
+#SBATCH --propagate=STACK
+
 # Pass values from outside script to the launch.slurm file we're building:
 export PROJ_ROOT="${PROJ_ROOT}"
 export EXP_NAME="${EXP_NAME}"
@@ -159,7 +166,7 @@ echo "MASTER_ADDR: \${MASTER_ADDR}"
 echo "MASTER_PORT: \${MASTER_PORT}"
 echo "WORLD_SIZE: \${WORLD_SIZE}"
 # RANK and LOCAL_RANK must be set from within the python code, because SLURM_PROCID and
-# SLURM_LOCALID aren't set until after "srun" launchs the processes.
+# SLURM_LOCALID aren't set until after "srun" launches the processes.
 echo "RANK: \${RANK}"
 echo "LOCAL_RANK: \${LOCAL_RANK}"
 echo "SLURM_PROCID: \${SLURM_PROCID}"
@@ -172,6 +179,15 @@ export NCCL_DEBUG=WARN
 
 # command
 pushd "\${PROJ_ROOT}"
+
+# * Don't know if this is necessary. Also see related note above, on the "propagate" setting.
+ulimit -s unlimited
+
+export WANDB_NAME="${EXP_ID}"
+export WANDB_ENTITY="rpt_x"
+export WANDB_PROJECT="llarvax"
+export WANDB_DIR="${LOG_DIR}/wandb"
+export WANDB_RUN_GROUP="${EXP_ID}"
 
 srun \\
     --unbuffered \\
@@ -193,9 +209,9 @@ srun \\
         --bf16 True \\
         --output_dir "\${OUTPUT_DIR}/checkpoints/llava-v1.5-7b-pretrain_exp4" \\
         --num_train_epochs 1 \\
-        --per_device_train_batch_size 8 \\
-        --per_device_eval_batch_size 16 \\
-        --gradient_accumulation_steps 2 \\
+        --per_device_train_batch_size 16 \\
+        --per_device_eval_batch_size 32 \\
+        --gradient_accumulation_steps 1 \\
         --evaluation_strategy "steps" \\
         --eval_steps 1000 \\
         --save_strategy "steps" \\
@@ -211,7 +227,8 @@ srun \\
         --gradient_checkpointing True \\
         --dataloader_num_workers 4 \\
         --lazy_preprocess True \\
-        --report_to "none"
+        --report_to "wandb" \\
+        --run_name "\${EXP_ID}"
 
 EOT
 

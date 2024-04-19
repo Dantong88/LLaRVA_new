@@ -138,7 +138,7 @@ class LengthGroupedSampler(Sampler):
 class LLaVATrainer(Trainer):
     def log(self, logs):
         super().log(logs)
-        if wandb.run is not None:
+        if wandb.run is not None and wandb.run.mode == "offline":
             trigger_sync()
 
     def _get_train_sampler(self) -> Optional[torch.utils.data.Sampler]:

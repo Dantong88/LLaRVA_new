@@ -30,6 +30,7 @@ export EXP_ID="${EXP_NAME}"
 export OUTPUT_DIR="${PROJ_ROOT}/output/${EXP_ID}"
 export LOG_DIR="${OUTPUT_DIR}/logs"
 export DATA_DIR="${PROJECTS_HOME}/nga-frontier/llarva_datasets"
+# export DATA_DIR="${PROJECTS_HOME}/nga-frontier/llarva/data"
 
 # * Job settings
 export NPROCS_PER_NODE=128
@@ -90,6 +91,10 @@ cat - >launch.slurm <<EOT
 #SBATCH --gpu-bind=none                   # NCCL can't deal with task-binding...
 #SBATCH --cpus-per-task=${NCPUS_PER_TASK}
 
+# * Don't know if these are needed, they were copied from Jerome attempts that hit an ~8GB
+# * memory limit with an old version of a .slurm script which had different settings, so
+# * the issue that "propagate" and "ulimit -s unlimited" was addressing might not apply to
+# * this current script:
 #SBATCH --export=ALL
 #SBATCH --propagate=STACK
 
@@ -182,8 +187,11 @@ ulimit -s unlimited
 export WANDB_NAME="${EXP_ID}"
 export WANDB_ENTITY="rpt_x"
 export WANDB_PROJECT="llarvax"
-export WANDB_DIR="${LOG_DIR}/wandb"
+export WANDB_DIR="${LOG_DIR}"
 export WANDB_RUN_GROUP="${EXP_ID}"
+# TODO: Why is wandb.run.mode deprecated (there is a warning in the beginning of training)?
+#   What should we use instead?
+export WANDB_MODE="offline"
 
 srun \\
     --unbuffered \\

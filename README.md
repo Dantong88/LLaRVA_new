@@ -54,3 +54,24 @@ pip install -e .
         #     )
 ```
 
+
+### for continue fine-tuning llava
+1. ```/home/niudt/anaconda3/envs/llava_ft/lib/python3.10/site-packages/transformers/integrations/deepspeed.py```
+   change line 403:
+   ```
+       if len(deepspeed_checkpoint_dirs) > 0:
+        logger.info(f"Attempting to resume from {checkpoint_path}")
+        # this magically updates self.optimizer and self.lr_scheduler
+        load_path, _ = deepspeed_engine.load_checkpoint(
+            checkpoint_path, load_optimizer_states=True, load_lr_scheduler_states=True
+        )
+        if load_path is None:
+            raise ValueError(f"[deepspeed] failed to resume from checkpoint {checkpoint_path}")
+    else:
+        raise ValueError(f"Can't find a valid checkpoint at {checkpoint_path}")
+   ```
+   change both ```checkpoint_path, load_optimizer_states=True, load_lr_scheduler_states=True``` to `False```
+
+2. ```/home/niudt/anaconda3/envs/llava_ft/lib/python3.10/site-packages/transformers/trainer.py```
+   change line 1713 to ```self._load_optimizer_and_scheduler(None)```
+

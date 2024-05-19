@@ -75,3 +75,6 @@ pip install -e .
 2. ```/home/niudt/anaconda3/envs/llava_ft/lib/python3.10/site-packages/transformers/trainer.py```
    change line 1713 to ```self._load_optimizer_and_scheduler(None)```
 
+3，```/home/niudt/anaconda3/envs/llava_ft/lib/python3.10/site-packages/transformers/trainer.py```
+   change line 1713 to ```self._load_optimizer_and_scheduler(None)```
+
